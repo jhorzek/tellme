@@ -6,7 +6,7 @@ authors = [
     {name = "Jannik Orzek",email = "jannik.orzek@mailbox.org"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
 ]
 
