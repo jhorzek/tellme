@@ -1,16 +1,33 @@
-[project]
+[tool.poetry]
 name = "tellme"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Jannik Orzek",email = "jannik.orzek@mailbox.org"}
-]
+authors = ["Jannik Orzek <jannik.orzek@mailbox.org>"]
 readme = "README.md"
-requires-python = ">=3.10"
-dependencies = [
-]
+license = "GPL-3.0-or-later"
 
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+podcastfy = "^0.4.1"
+ffmpeg = "^1.4"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+# Formatting and code checking with ruff
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = false
+
+[tool.ruff.lint]
+extend-select = ["D"]
+
+[tool.ruff.lint.per-file-ignores]
+# We don't want to check the test files for documentation
+"tests/**" = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
