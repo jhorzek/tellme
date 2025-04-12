@@ -7,14 +7,18 @@ readme = "README.md"
 license = "GPL-3.0-or-later"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-podcastfy = "^0.4.1"
-ffmpeg = "^1.4"
+python = ">=3.11"
 streamlit = "^1.44.1"
 aiohttp = "^3.11.16"
 geopy = "^2.4.1"
 shapely = "^2.1.0"
 overpy = "^0.7"
+chatlas = "^0.6.1"
+dotenv = "^0.9.9"
+wikipedia = "^1.4.0"
+google-genai = "^1.10.0"
+edge-tts = "^7.0.0"
+ffmpeg-python = "^0.2.0"
 
 [build-system]
 requires = ["poetry-core"]
