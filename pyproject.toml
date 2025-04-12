@@ -10,6 +10,7 @@ license = "GPL-3.0-or-later"
 python = ">=3.11,<4.0"
 podcastfy = "^0.4.1"
 ffmpeg = "^1.4"
+streamlit = "^1.44.1"
 
 [build-system]
 requires = ["poetry-core"]
