@@ -21,17 +21,15 @@ WORKDIR /app/tellme
 
 # The project requires poetry
 RUN pip install poetry
-RUN python -m venv .venv
+RUN poetry install
 
-# Install the package using poetry
-RUN .venv/bin/pip install poetry
-RUN .venv/bin/poetry install
-
-# Install streamlit into the virtual environment
-RUN .venv/bin/pip install streamlit
+# Ensure the virtual environment is activated for subsequent commands
+SHELL ["/bin/bash", "-c"]
+RUN echo "source \$(poetry env info --path)/bin/activate" >> ~/.bashrc
 
 EXPOSE 8501
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-ENTRYPOINT [".venv/bin/streamlit", "run", "tellme/A_user_interface/streamlit_UI.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Run the Streamlit application within the virtual environment
+ENTRYPOINT ["poetry", "run", "streamlit", "run", "tellme/A_user_interface/streamlit_UI.py", "--server.port=8501", "--server.address=0.0.0.0"]
