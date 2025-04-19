@@ -9,10 +9,19 @@ There are currently two ways to setting everyting up.
 
 ## Using docker
 
-1. Download and install docker
-2. Create a .env file in your working directory and add a filed with `GEMINI_API_KEY = YOUR_API_KEY`
-3. Create the docker file with `docker build -t tellme .`
-4. Run the docker file with `docker run -p 8501:8501 tellme`
+First, download and install docker. 
+
+When on linux or windows, run:
+
+```
+docker run -p 8501:8501 ghcr.io/jhorzek/tellme:latest
+```
+
+On mac-os run:
+
+```
+docker run --platform linux/amd64 -p 8501:8501 ghcr.io/jhorzek/tellme:latest
+```
 
 Go to the browser window indicated in the terminal.
 
