@@ -1,0 +1,38 @@
+# Use an official Python runtime as a parent image
+FROM python:3.13-bookworm
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    software-properties-common \
+    git \
+    ffmpeg
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Clone the package from GitHub
+RUN git clone https://github.com/jhorzek/tellme.git /app/tellme
+
+# Change to the repository directory
+WORKDIR /app/tellme
+
+# We need the .env file with the API keys
+COPY .env .env
+
+# The project requires poetry
+RUN pip install poetry
+RUN python -m venv .venv
+
+# Install the package using poetry
+RUN .venv/bin/pip install poetry
+RUN .venv/bin/poetry install
+
+# Install streamlit into the virtual environment
+RUN .venv/bin/pip install streamlit
+
+EXPOSE 8501
+
+HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
+
+ENTRYPOINT [".venv/bin/streamlit", "run", "tellme/A_user_interface/streamlit_UI.py", "--server.port=8501", "--server.address=0.0.0.0"]

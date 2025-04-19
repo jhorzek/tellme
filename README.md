@@ -1,6 +1,22 @@
 # tellme
 
-How to get the project:
+tellme is a simple podcast AI that is heavily inspired by [podcastfy](https://github.com/souzatharsis/podcastfy). The objective is to search nearby sight seeing spots and generate short podcasts for those sports. As an app, this would allow discovering your environment while you are going for a walk.
+
+There are currently two ways to setting everyting up.
+
+1. Using docker 
+2. Installing locally
+
+## Using docker
+
+1. Download and install docker
+2. Create a .env file in your working directory and add a filed with `GEMINI_API_KEY = YOUR_API_KEY`
+3. Create the docker file with `docker build -t tellme .`
+4. Run the docker file with `docker run -p 8501:8501 tellme`
+
+Go to the browser window indicated in the terminal.
+
+## Installing locally
 
 1. Download the desktop version of GitHub (this is the easiest way)
 2. Open the GitHub desktop app and log in
@@ -38,6 +54,8 @@ that you have tellme installed as well (run `poetry install` in the terminal).
 ### How to install ffmpeg on windows
 
 Follow the instructions on this website: https://phoenixnap.com/kb/ffmpeg-windows
+
+### Run the app
 
 Once everything is installed, you can create a simple podcast as follows:
 
