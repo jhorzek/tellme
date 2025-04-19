@@ -1,0 +1,24 @@
+name: create-docker-image
+
+# Only run this when the main branch changes
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  create-docker-image:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        
+      - name: Build Docker with Dependencies
+        run: |
+          ls && docker build . --file .github/workflows/dockerfile --tag ghcr.io/jhorzek/tellme:latest
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+          docker push ghcr.io/jhorzek/tellme:latest
