@@ -6,8 +6,6 @@ import uuid
 import edge_tts
 import ffmpeg
 
-from tellme.F_create_podcast.create_podcast_transcript import Transcript
-
 
 async def create_audio_segment_edge(utterance: str, voice: str, file_name: str) -> None:
     """Create a segment of a podcast with edge tts.
@@ -81,5 +79,5 @@ async def create_podcast_audio_edge(
         ffmpeg_input.append(ffmpeg.input(file))
     ffmpeg.concat(*ffmpeg_input, v=0, a=1).output(
         os.path.join(output_folder, output_file)
-    ).run()
+    ).run(overwrite_output=True)
     return output_file

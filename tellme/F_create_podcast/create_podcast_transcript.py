@@ -4,7 +4,6 @@ import os
 from typing import Type
 
 import chatlas
-from dotenv import find_dotenv, load_dotenv
 from pydantic import BaseModel, Field
 
 
@@ -12,10 +11,10 @@ def get_model_api_key(key_name: str) -> str:
     """Extract an API key from a .env file.
 
     Many of the AI models require an API key. This function exports that API
-    key from the .env file.
+    key from the environment variables.
 
     Args:
-        key_name (str): The name of the key in the .env file
+        key_name (str): The name of the key in the environment variables file
 
     Returns:
         str: The api key
@@ -25,12 +24,9 @@ def get_model_api_key(key_name: str) -> str:
         get_model_api_key("GEMINI_API_KEY")
     """
     # The model api key should be at the root of the project in a .env file
-    env_path = find_dotenv()
-    if env_path:
-        load_dotenv(env_path)
-    else:
-        raise FileNotFoundError('.env file not found.')
-    api_key = os.getenv(key_name)
+    api_key = os.environ.get(key_name)
+    if not api_key:
+        raise ValueError(f'Environment variable {key_name} not found.')
     return api_key
 
 

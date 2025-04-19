@@ -17,9 +17,6 @@ RUN git clone https://github.com/jhorzek/tellme.git /app/tellme
 # Change to the repository directory
 WORKDIR /app/tellme
 
-# We need the .env file with the API keys
-COPY .env .env
-
 # The project requires poetry
 RUN pip install poetry
 RUN python -m venv .venv
