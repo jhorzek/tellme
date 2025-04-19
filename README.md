@@ -35,6 +35,10 @@ You can now run the scripts.
 To get the podcast feature up and running, you will need ffmpeg. Also make sure
 that you have tellme installed as well (run `poetry install` in the terminal).
 
+### How to install ffmpeg on windows
+
+Follow the instructions on this website: https://phoenixnap.com/kb/ffmpeg-windows
+
 Once everything is installed, you can create a simple podcast as follows:
 
 ```py
