@@ -1,19 +1,36 @@
-import streamlit as st
+"""Streamlit UI."""
 
 import asyncio
 
-from chatlas import ChatGoogle
-
+import streamlit as st
+from chatlas import ChatGoogle, ChatOllama
+from tellme.A_user_interface.location_to_podcast import location_to_podcast
 from tellme.B_get_location.location import get_bounding_box
-from tellme.C_get_attractions_nearby.get_attractions import get_nearby_attractions
-from tellme.D_get_article.get_wiki_article import get_wiki_article
-from tellme.F_create_podcast.create_podcast_audio import create_podcast_audio_edge
-from tellme.F_create_podcast.create_podcast_transcript import (
-    create_podcast_transcript,
-    get_model_api_key,
-)
-from tellme.F_create_podcast.podcast_setups import Sofia_Mark
 
+with st.sidebar:
+    st.header('Model Settings')
+
+    chat_provider = st.selectbox(
+        'Choose a chat provider', {'Gemini', 'Ollama'}, index=0
+    )
+
+    if chat_provider == 'Gemini':
+        model_name = st.text_input(
+            'Name of the AI model to use', value='gemini-2.0-flash'
+        )
+    else:
+        model_name = st.text_input('Name of the AI model to use', value=None)
+
+    if chat_provider == 'Ollama':
+        api_key = None
+    else:
+        api_key = st.text_input(f'Your API Key for {chat_provider}', type='password')
+
+    match chat_provider:
+        case 'Gemini':
+            Chat = ChatGoogle
+        case 'Ollama':
+            Chat = ChatOllama
 
 latitude = st.number_input(
     label='latitude',
@@ -39,33 +56,20 @@ box_size = st.number_input(
     placeholder="""Enter size of the box in which you want to search for attractions""",
 )
 
-api_key = get_model_api_key(key_name='GEMINI_API_KEY')
+if (latitude is not None) and (longitude is not None) and (box_size is not None):
+    bbox = get_bounding_box(latitude, longitude, box_size)
 
-# 1km bounding box around Alexanderplatz
-bounding_box = get_bounding_box(latitude, longitude, box_size)
-locs = get_nearby_attractions(
-    west_longitude=bounding_box.bounds[0],
-    south_latitude=bounding_box.bounds[1],
-    east_longitude=bounding_box.bounds[2],
-    north_latitude=bounding_box.bounds[3],
-)
-
-# just simply selects the first wiki article
-art = get_wiki_article(article_title=locs[0].name)
-
-pod_transcript = create_podcast_transcript(
-    system_prompt=Sofia_Mark, Chat=ChatGoogle, wiki_article=art, api_key=api_key
-)
-
-asyncio.run(
-    create_podcast_audio_edge(
-        transcript=pod_transcript,
-        output_file='podcast_output.mp3',
-        output_folder='data',
-        voices={'Mark': 'en-US-RogerNeural', 'Sofia': 'en-GB-SoniaNeural'},
-    )
-)
-
-st.audio(
-    data = 'data\podcast_output.mp3'
-)
+# Add a button
+if st.button('Create Podcast'):
+    if (latitude is None) or (longitude is None) or (box_size is None):
+        st.error(
+            'Please provide latitude, longitude, and the box size to create a podcast.'
+        )
+    elif (chat_provider == 'Gemini') & ((api_key is None) or (api_key == '')):
+        st.error('Please provide an API key for Gemini.')
+    else:
+        asyncio.run(
+            location_to_podcast(
+                bbox=bbox, Chat=Chat, model_name=model_name, api_key=api_key
+            )
+        )
