@@ -1,0 +1,88 @@
+import folium
+import streamlit as st
+
+from streamlit_folium import st_folium
+import asyncio
+from tellme.A_user_interface.location_to_podcast import location_to_podcast
+from tellme.B_get_location.location import get_bounding_box
+from tellme.C_get_attractions_nearby.get_attractions import get_nearby_attractions
+from tellme.C_get_attractions_nearby.get_attractions import Attraction
+
+
+def add_podcast(attraction_name, path):
+    st.session_state.podcasts[attraction_name] = path
+
+
+def get_podcast(attraction_name):
+    return st.session_state.podcasts.get(attraction_name)
+
+
+def show_attraction_details(attraction: Attraction, chat_provider: str, Chat, model_name, api_key) -> None:
+   # Create a list with each of the locations and allow users to create podcasts
+    st.subheader(attraction.name)
+    if get_podcast(attraction.name):
+        st.audio(
+            get_podcast(attraction.name),
+            format='audio/mpeg',
+            loop=False,
+            autoplay=False,)
+    else:
+        if st.button("Create Podcast", key=f"create_podcast_{attraction.name}_{attraction.wikidata_id}"):
+            if (chat_provider == 'Gemini') & ((api_key is None) or (api_key == '')):
+                st.error('Please provide an API key for Gemini.')
+            else:
+                with st.spinner("Creating the podcast for you...", show_time=True):
+                    pod_path = asyncio.run(
+                        location_to_podcast(
+                            attraction_name=attraction.name, Chat=Chat, model_name=model_name, api_key=api_key
+                        )
+                    )
+                add_podcast(attraction.name, pod_path)
+                st.audio(
+                    get_podcast(attraction.name),
+                    format='audio/mpeg',
+                    loop=False,
+                    autoplay=False,)
+
+
+def show_map(latitude, longitude, attractions: list[Attraction],
+             chat_provider,
+             Chat,
+             model_name,
+             api_key):
+
+    map = folium.Map(location=[latitude, longitude], zoom_start=16)
+    for attr in attractions:
+        folium.Marker(
+            [attr.location["latitude"], attr.location["longitude"]],
+            popup=attr.name, tooltip=attr.name,
+            icon=folium.Icon(color='green', icon_color='white', icon='info-sign')).add_to(map)
+    # We also want to show the users location:
+    folium.Marker([latitude, longitude], popup="Your location", tooltip="Your location",
+                  icon=folium.Icon(color='blue', icon_color='white', icon='info-sign')).add_to(map)
+    st_data = st_folium(map, use_container_width=True, width=1200,
+                        height=500)
+    if st_data["last_object_clicked_tooltip"] is not None:
+        for attraction in attractions:
+            if attraction.name == st_data["last_object_clicked_tooltip"]:
+                show_attraction_details(attraction=attraction,
+                                        chat_provider=chat_provider,
+                                        Chat=Chat,
+                                        model_name=model_name,
+                                        api_key=api_key)
+
+
+def fetch_and_create_attraction_map(latitude, longitude, box_size, chat_provider, Chat, model_name, api_key):
+    bbox = get_bounding_box(latitude, longitude, box_size)
+    attractions = get_nearby_attractions(
+        west_longitude=bbox.bounds[0],
+        south_latitude=bbox.bounds[1],
+        east_longitude=bbox.bounds[2],
+        north_latitude=bbox.bounds[3],
+    )
+    # Show the attractions on a map
+    show_map(latitude, longitude, attractions,
+             chat_provider=chat_provider,
+             Chat=Chat,
+             model_name=model_name,
+             api_key=api_key)

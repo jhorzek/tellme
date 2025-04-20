@@ -1,6 +1,7 @@
 """Extract all attractions within a bounding box."""
 
 import overpy
+import streamlit as st
 
 
 class Attraction:
@@ -32,6 +33,7 @@ class Attraction:
         self.wikidata_id = wikidata_id
 
 
+@st.cache_data
 def get_nearby_attractions(
     west_longitude: float,
     south_latitude: float,
@@ -102,7 +104,7 @@ def nodes_to_attractions(overpy_nodes: overpy.Result) -> list[Attraction]:
         location = {'latitude': float(node.lat), 'longitude': float(node.lon)}
         wikipedia_name = node.tags.get('wikipedia', 'noarticle')
         if (name == 'noname') | (wikipedia_name == 'noarticle'):
-            next
+            continue
         attractions.append(
             Attraction(
                 name=name,
