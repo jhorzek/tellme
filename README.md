@@ -28,10 +28,20 @@ Go to the browser window indicated in the terminal.
 The easiest way to work with the source code of tellme is to use Github's codespaces. Simply click on the "Code" button on top, select codespaces and click open in codespace. The setup may take a minute, but after that you should have the projects latest version in an online VSCode interface ready to go. To create a podcast, run
 
 ```
-poetry run streamlit run --server.port=8501 --server.address=0.0.0.0 tellme/A_user_interface/streamlit_UI.py
+poetry run streamlit run --server.port=8501 --server.address=0.0.0.0 tellme/User_interface/streamlit_UI.py
 ```
 
-Alternatively, you can download the code locally and run it with a dev container in VSCode.
+If you want to develop locally, please:
+
+1. install Docker on your computer
+2. install VSCode and the Dev Containers extension
+3. Download the project. The Dev Containers extension should automatically detect the docker setup and ask you if it should set up the dev container for you
+
+After a few minutes, you should be ready to code! You can run the application with
+
+```
+poetry run streamlit run --server.port=8501 --server.address=0.0.0.0 tellme/User_interface/streamlit_UI.py
+```
 
 ## API Keys
 
