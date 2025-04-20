@@ -1,26 +1,24 @@
 """Streamlit UI."""
 
-import asyncio
-
 import streamlit as st
 from chatlas import ChatGoogle, ChatOllama
-from tellme.A_user_interface.user_location import get_user_location
-from tellme.A_user_interface.attraction_map import fetch_and_create_attraction_map
+
+from tellme.User_interface.attraction_map import fetch_and_create_attraction_map
+from tellme.User_interface.user_location import get_user_location
 
 # Make sure that the following elements are kept when the app is rerun:
-if "podcasts" not in st.session_state:
+if 'podcasts' not in st.session_state:
     st.session_state.podcasts = {}
 
 current_location = get_user_location()
 
 with st.sidebar:
-
-    st.header("Location:")
+    st.header('Location:')
     latitude = st.number_input(
         label='latitude',
         min_value=-90.00000,
         max_value=90.00000,
-        value=current_location["latitude"],
+        value=current_location['latitude'],
         placeholder="""Enter latitude value of your location""",
     )
 
@@ -28,7 +26,7 @@ with st.sidebar:
         label='longitude',
         min_value=-180.00000,
         max_value=180.00000,
-        value=current_location["longitude"],
+        value=current_location['longitude'],
         placeholder="""Enter longitude value of your location""",
     )
 
@@ -56,8 +54,7 @@ with st.sidebar:
     if chat_provider == 'Ollama':
         api_key = None
     else:
-        api_key = st.text_input(
-            f'Your API Key for {chat_provider}', type='password')
+        api_key = st.text_input(f'Your API Key for {chat_provider}', type='password')
 
     match chat_provider:
         case 'Gemini':
@@ -67,10 +64,12 @@ with st.sidebar:
 
 
 if (latitude is not None) and (longitude is not None) and (box_size is not None):
-    fetch_and_create_attraction_map(latitude=latitude,
-                                    longitude=longitude,
-                                    box_size=box_size,
-                                    chat_provider=chat_provider,
-                                    Chat=Chat,
-                                    model_name=model_name,
-                                    api_key=api_key)
+    fetch_and_create_attraction_map(
+        latitude=latitude,
+        longitude=longitude,
+        box_size=box_size,
+        chat_provider=chat_provider,
+        Chat=Chat,
+        model_name=model_name,
+        api_key=api_key,
+    )
