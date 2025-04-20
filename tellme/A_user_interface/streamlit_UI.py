@@ -4,14 +4,46 @@ import asyncio
 
 import streamlit as st
 from chatlas import ChatGoogle, ChatOllama
-from tellme.A_user_interface.location_to_podcast import location_to_podcast
-from tellme.B_get_location.location import get_bounding_box
+from tellme.A_user_interface.user_location import get_user_location
+from tellme.A_user_interface.attraction_map import fetch_and_create_attraction_map
+
+# Make sure that the following elements are kept when the app is rerun:
+if "podcasts" not in st.session_state:
+    st.session_state.podcasts = {}
+
+current_location = get_user_location()
 
 with st.sidebar:
+
+    st.header("Location:")
+    latitude = st.number_input(
+        label='latitude',
+        min_value=-90.00000,
+        max_value=90.00000,
+        value=current_location["latitude"],
+        placeholder="""Enter latitude value of your location""",
+    )
+
+    longitude = st.number_input(
+        label='longitude',
+        min_value=-180.00000,
+        max_value=180.00000,
+        value=current_location["longitude"],
+        placeholder="""Enter longitude value of your location""",
+    )
+
+    box_size = st.number_input(
+        label='Box size',
+        min_value=1,
+        max_value=100,
+        value=1,
+        placeholder="""Enter size of the box in which you want to search for attractions""",
+    )
+
     st.header('Model Settings')
 
     chat_provider = st.selectbox(
-        'Choose a chat provider', {'Gemini', 'Ollama'}, index=0
+        'Choose a chat provider', ['Gemini', 'Ollama'], index=0
     )
 
     if chat_provider == 'Gemini':
@@ -24,7 +56,8 @@ with st.sidebar:
     if chat_provider == 'Ollama':
         api_key = None
     else:
-        api_key = st.text_input(f'Your API Key for {chat_provider}', type='password')
+        api_key = st.text_input(
+            f'Your API Key for {chat_provider}', type='password')
 
     match chat_provider:
         case 'Gemini':
@@ -32,44 +65,12 @@ with st.sidebar:
         case 'Ollama':
             Chat = ChatOllama
 
-latitude = st.number_input(
-    label='latitude',
-    min_value=-90.00000,
-    max_value=90.00000,
-    value=52.521992,
-    placeholder="""Enter latitude value of your location""",
-)
-
-longitude = st.number_input(
-    label='longitude',
-    min_value=-180.00000,
-    max_value=180.00000,
-    value=13.413244,
-    placeholder="""Enter longitude value of your location""",
-)
-
-box_size = st.number_input(
-    label='Box size',
-    min_value=1,
-    max_value=100,
-    value=1,
-    placeholder="""Enter size of the box in which you want to search for attractions""",
-)
 
 if (latitude is not None) and (longitude is not None) and (box_size is not None):
-    bbox = get_bounding_box(latitude, longitude, box_size)
-
-# Add a button
-if st.button('Create Podcast'):
-    if (latitude is None) or (longitude is None) or (box_size is None):
-        st.error(
-            'Please provide latitude, longitude, and the box size to create a podcast.'
-        )
-    elif (chat_provider == 'Gemini') & ((api_key is None) or (api_key == '')):
-        st.error('Please provide an API key for Gemini.')
-    else:
-        asyncio.run(
-            location_to_podcast(
-                bbox=bbox, Chat=Chat, model_name=model_name, api_key=api_key
-            )
-        )
+    fetch_and_create_attraction_map(latitude=latitude,
+                                    longitude=longitude,
+                                    box_size=box_size,
+                                    chat_provider=chat_provider,
+                                    Chat=Chat,
+                                    model_name=model_name,
+                                    api_key=api_key)
