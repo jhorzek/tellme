@@ -1,6 +1,8 @@
 # tellme
 
-tellme is a simple podcast AI that is heavily inspired by [podcastfy](https://github.com/souzatharsis/podcastfy). The objective is to search nearby sight seeing spots and generate short podcasts for those sports. As an app, this would allow discovering your environment while you are going for a walk.
+Discover your surroundings with short podcasts based on Wikipedia articles!
+
+tellme is a simple podcast AI that is heavily inspired by [podcastfy](https://github.com/souzatharsis/podcastfy). The objective is to search nearby sight seeing spots and generate short podcasts for those spots. The current version is a prototype, but once built into a proper app, this would allow you to discover your city while you are going for a walk.
 
 There are currently two ways to setting everyting up. If you are only interested in running the app, you can use
 the docker image at `ghcr.io/jhorzek/tellme:latest`. If you want to contribute to the development of the app, we recommend using the devcontainer with VSCode.
