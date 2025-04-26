@@ -1,9 +1,9 @@
 """Extract all attractions around a location."""
 
 # Adapted from https://www.mediawiki.org/wiki/API:Geosearch/Sample_code_1
-
 import requests
 import streamlit as st
+import wikipedia
 
 
 class Attraction:
@@ -56,6 +56,7 @@ def find_nearby_articles(
     request_result = session.get(url=url, params=request_parameters).json()
 
     pages = request_result['query']['pages']
+    print(f'Found {len(pages)} attractions!')
     attractions = pages_to_attractions(pages=pages)
     return attractions
 
@@ -73,10 +74,25 @@ def pages_to_attractions(pages: list) -> list[Attraction]:
 
     for page in pages:
         name = page['title']
-        location = {
-            'latitude': float(page['coordinates'][0]['lat']),
-            'longitude': float(page['coordinates'][0]['lon']),
-        }
+        # check if coordinates exist
+        if page.get('coordinates') is None:
+            # The problem here is that not every page has coordinates
+            # listed as primary coordinates. We have to get the coordinates
+            # with a separate step here.
+            coords = wikipedia.page(pageid=page['pageid']).coordinates
+            if coords is None:
+                print(f'Skipping {name} - no coordinates given.')
+                print(page)
+                continue
+            location = {
+                'latitude': float(coords[0]),
+                'longitude': float(coords[1]),
+            }
+        else:
+            location = {
+                'latitude': float(page['coordinates'][0]['lat']),
+                'longitude': float(page['coordinates'][0]['lon']),
+            }
         attractions.append(
             Attraction(
                 name=name,

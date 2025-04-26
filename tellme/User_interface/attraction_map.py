@@ -30,10 +30,13 @@ def get_summary(attraction_name):
 
 
 def show_attraction_details(
-    attraction: Attraction, chat_provider: str, Chat, model_name, api_key
+    attraction: Attraction, chat_provider: str, Chat, model_name, api_key, speech_model
 ) -> None:
     # Create a list with each of the locations and allow users to create podcasts
     st.subheader(attraction.name)
+    if (api_key is None) or (api_key == ''):
+        st.error('Please provide an API key')
+        return
 
     if get_summary(attraction_name=attraction.name):
         st.text(get_summary(attraction_name=attraction.name))
@@ -60,16 +63,18 @@ def show_attraction_details(
             'Create Podcast',
             key=f'create_podcast_{attraction.name}_{attraction.wikidata_id}',
         ):
-            if (chat_provider == 'Gemini') & ((api_key is None) or (api_key == '')):
+            if (api_key is None) or (api_key == ''):
                 st.error('Please provide an API key for Gemini.')
             else:
                 with st.spinner('Creating the podcast for you...', show_time=True):
                     pod_path = asyncio.run(
                         location_to_podcast(
+                            article=get_wiki_article(article_title=attraction.name),
                             attraction_name=attraction.name,
                             Chat=Chat,
                             model_name=model_name,
                             api_key=api_key,
+                            speech_model=speech_model,
                         )
                     )
                 add_podcast(attraction.name, pod_path)
@@ -89,6 +94,7 @@ def show_map(
     Chat,
     model_name,
     api_key,
+    speech_model,
 ):
     map = folium.Map(location=[latitude, longitude], zoom_start=16)
     for attr in attractions:
@@ -115,12 +121,14 @@ def show_map(
                     Chat=Chat,
                     model_name=model_name,
                     api_key=api_key,
+                    speech_model=speech_model,
                 )
 
 
 def fetch_and_create_attraction_map(
-    latitude, longitude, radius, chat_provider, Chat, model_name, api_key
+    latitude, longitude, radius, chat_provider, Chat, model_name, api_key, speech_model
 ):
+    print(f'Calling find_nearby_articles with {latitude} {longitude} {radius}')
     attractions = find_nearby_articles(
         latitude=latitude, longitude=longitude, radius=radius, max_results=50
     )
@@ -133,4 +141,5 @@ def fetch_and_create_attraction_map(
         Chat=Chat,
         model_name=model_name,
         api_key=api_key,
+        speech_model=speech_model,
     )

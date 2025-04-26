@@ -1,7 +1,7 @@
 """Streamlit UI."""
 
 import streamlit as st
-from chatlas import ChatGoogle, ChatOllama
+from chatlas import ChatGoogle, ChatOpenAI
 
 from tellme.User_interface.attraction_map import fetch_and_create_attraction_map
 from tellme.User_interface.user_location import get_user_location
@@ -44,26 +44,26 @@ with st.sidebar:
     st.header('Model Settings')
 
     chat_provider = st.selectbox(
-        'Choose a chat provider', ['Gemini', 'Ollama'], index=0
+        'Choose a chat provider', ['Gemini', 'OpenAI'], index=0
     )
 
     if chat_provider == 'Gemini':
         model_name = st.text_input(
             'Name of the AI model to use', value='gemini-2.0-flash'
         )
-    else:
-        model_name = st.text_input('Name of the AI model to use', value=None)
+        speech_model = 'edge-tts'
+    elif chat_provider == 'OpenAI':
+        model_name = st.text_input('Name of the AI model to use', value='gpt-4.1')
+        st.text('OpenAI will also be used to generate the voices.')
+        speech_model = 'gpt-4o-mini-tts'
 
-    if chat_provider == 'Ollama':
-        api_key = None
-    else:
-        api_key = st.text_input(f'Your API Key for {chat_provider}', type='password')
+    api_key = st.text_input(f'Your API Key for {chat_provider}', type='password')
 
     match chat_provider:
         case 'Gemini':
             Chat = ChatGoogle
-        case 'Ollama':
-            Chat = ChatOllama
+        case 'OpenAI':
+            Chat = ChatOpenAI
 
 
 if (latitude is not None) and (longitude is not None) and (radius is not None):
@@ -75,4 +75,5 @@ if (latitude is not None) and (longitude is not None) and (radius is not None):
         Chat=Chat,
         model_name=model_name,
         api_key=api_key,
+        speech_model=speech_model,
     )
