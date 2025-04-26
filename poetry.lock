@@ -1300,18 +1300,6 @@ realtime = ["websockets (>=13,<16)"]
 voice-helpers = ["numpy (>=2.0.2)", "sounddevice (>=0.5.1)"]
 
 [[package]]
-name = "overpy"
-version = "0.7"
-description = "Python Wrapper to access the OpenStreepMap Overpass API"
-optional = false
-python-versions = ">=3.6"
-groups = ["main"]
-files = [
-    {file = "overpy-0.7-py3-none-any.whl", hash = "sha256:cc888c9dcdf9076e667b435909f57e028845c4a1133b6a6f3528284a304516c3"},
-    {file = "overpy-0.7.tar.gz", hash = "sha256:f6df5073de0cc1f63aed6d2632140f98c3d91fa3a2e3bef1bcfaa6225500f364"},
-]
-
-[[package]]
 name = "packaging"
 version = "24.2"
 description = "Core utilities for Python packages"
@@ -2716,4 +2704,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
-content-hash = "89c6ebda30884366b59496ad76ca6ec174a16fefb10f99b83069d58215ad93cc"
+content-hash = "923a4f5939f1c9bee9fe4ba46de25fe022c34a5a8fb25db2692582cd1b57f2a8"
