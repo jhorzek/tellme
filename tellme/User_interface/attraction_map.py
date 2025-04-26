@@ -30,7 +30,13 @@ def get_summary(attraction_name):
 
 
 def show_attraction_details(
-    attraction: Attraction, chat_provider: str, Chat, model_name, api_key, speech_model
+    attraction: Attraction,
+    local,
+    chat_provider: str,
+    Chat,
+    model_name,
+    api_key,
+    speech_model,
 ) -> None:
     # Create a list with each of the locations and allow users to create podcasts
     st.subheader(attraction.name)
@@ -41,8 +47,14 @@ def show_attraction_details(
     if get_summary(attraction_name=attraction.name):
         st.text(get_summary(attraction_name=attraction.name))
     else:
+        try:
+            article = get_wiki_article(article_id=attraction.wikidata_id, local=local)
+        except Exception as error:
+            print('Could not retrieve article from wikipedia:', error)
+            st.error('Could not retrieve article from wikipedia')
+            return
         summary_text = create_article_summary(
-            get_wiki_article(article_title=attraction.name),
+            article,
             Chat=Chat,
             model=model_name,
             api_key=api_key,
@@ -66,10 +78,18 @@ def show_attraction_details(
             if (api_key is None) or (api_key == ''):
                 st.error('Please provide an API key for Gemini.')
             else:
+                try:
+                    article = get_wiki_article(
+                        article_id=attraction.wikidata_id, local=local
+                    )
+                except Exception as error:
+                    print('Could not retrieve article from wikipedia:', error)
+                    st.error('Could not retrieve article from wikipedia')
+                    return
                 with st.spinner('Creating the podcast for you...', show_time=True):
                     pod_path = asyncio.run(
                         location_to_podcast(
-                            article=get_wiki_article(article_title=attraction.name),
+                            article=article,
                             attraction_name=attraction.name,
                             Chat=Chat,
                             model_name=model_name,
@@ -90,6 +110,7 @@ def show_map(
     latitude,
     longitude,
     attractions: list[Attraction],
+    local,
     chat_provider,
     Chat,
     model_name,
@@ -117,6 +138,7 @@ def show_map(
             if attraction.name == st_data['last_object_clicked_tooltip']:
                 show_attraction_details(
                     attraction=attraction,
+                    local=local,
                     chat_provider=chat_provider,
                     Chat=Chat,
                     model_name=model_name,
@@ -126,17 +148,30 @@ def show_map(
 
 
 def fetch_and_create_attraction_map(
-    latitude, longitude, radius, chat_provider, Chat, model_name, api_key, speech_model
+    local,
+    latitude,
+    longitude,
+    radius,
+    chat_provider,
+    Chat,
+    model_name,
+    api_key,
+    speech_model,
 ):
     print(f'Calling find_nearby_articles with {latitude} {longitude} {radius}')
     attractions = find_nearby_articles(
-        latitude=latitude, longitude=longitude, radius=radius, max_results=50
+        local=local,
+        latitude=latitude,
+        longitude=longitude,
+        radius=radius,
+        max_results=50,
     )
     # Show the attractions on a map
     show_map(
         latitude,
         longitude,
         attractions,
+        local=local,
         chat_provider=chat_provider,
         Chat=Chat,
         model_name=model_name,

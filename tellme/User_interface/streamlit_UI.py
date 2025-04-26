@@ -16,9 +16,12 @@ if 'summary' not in st.session_state:
 current_location = get_user_location()
 
 with st.sidebar:
+    st.header('Wikipedia settings:')
+    local = st.text_input('Local of the wikipedia page', value='de')
+
     st.header('Location:')
     latitude = st.number_input(
-        label='latitude',
+        label='Latitude',
         min_value=-90.00000,
         max_value=90.00000,
         value=current_location['latitude'],
@@ -26,7 +29,7 @@ with st.sidebar:
     )
 
     longitude = st.number_input(
-        label='longitude',
+        label='Longitude',
         min_value=-180.00000,
         max_value=180.00000,
         value=current_location['longitude'],
@@ -68,6 +71,7 @@ with st.sidebar:
 
 if (latitude is not None) and (longitude is not None) and (radius is not None):
     fetch_and_create_attraction_map(
+        local=local,
         latitude=latitude,
         longitude=longitude,
         radius=radius,
