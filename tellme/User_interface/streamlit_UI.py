@@ -10,6 +10,9 @@ from tellme.User_interface.user_location import get_user_location
 if 'podcasts' not in st.session_state:
     st.session_state.podcasts = {}
 
+if 'summary' not in st.session_state:
+    st.session_state.summary = {}
+
 current_location = get_user_location()
 
 with st.sidebar:

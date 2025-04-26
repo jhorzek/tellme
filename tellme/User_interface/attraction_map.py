@@ -4,6 +4,8 @@ import folium
 import streamlit as st
 from streamlit_folium import st_folium
 
+from tellme.AI_Summary.summary import create_article_summary
+from tellme.Articles.get_wiki_article import get_wiki_article
 from tellme.Attractions.get_attractions import (
     Attraction,
     find_nearby_articles,
@@ -15,8 +17,16 @@ def add_podcast(attraction_name, path):
     st.session_state.podcasts[attraction_name] = path
 
 
+def add_summary(attraction_name, summary_text):
+    st.session_state.summary[attraction_name] = summary_text
+
+
 def get_podcast(attraction_name):
     return st.session_state.podcasts.get(attraction_name)
+
+
+def get_summary(attraction_name):
+    return st.session_state.summary.get(attraction_name)
 
 
 def show_attraction_details(
@@ -24,6 +34,20 @@ def show_attraction_details(
 ) -> None:
     # Create a list with each of the locations and allow users to create podcasts
     st.subheader(attraction.name)
+
+    if get_summary(attraction_name=attraction.name):
+        st.text(get_summary(attraction_name=attraction.name))
+    else:
+        summary_text = create_article_summary(
+            get_wiki_article(article_title=attraction.name),
+            Chat=Chat,
+            model=model_name,
+            api_key=api_key,
+        )
+
+        add_summary(attraction_name=attraction.name, summary_text=summary_text)
+        st.text(get_summary(attraction_name=attraction.name))
+
     if get_podcast(attraction.name):
         st.audio(
             get_podcast(attraction.name),
