@@ -6,9 +6,8 @@ from streamlit_folium import st_folium
 
 from tellme.Attractions.get_attractions import (
     Attraction,
-    get_nearby_attractions,
+    find_nearby_articles,
 )
-from tellme.Locations.location import get_bounding_box
 from tellme.User_interface.location_to_podcast import location_to_podcast
 
 
@@ -96,14 +95,10 @@ def show_map(
 
 
 def fetch_and_create_attraction_map(
-    latitude, longitude, box_size, chat_provider, Chat, model_name, api_key
+    latitude, longitude, radius, chat_provider, Chat, model_name, api_key
 ):
-    bbox = get_bounding_box(latitude, longitude, box_size)
-    attractions = get_nearby_attractions(
-        west_longitude=bbox.bounds[0],
-        south_latitude=bbox.bounds[1],
-        east_longitude=bbox.bounds[2],
-        north_latitude=bbox.bounds[3],
+    attractions = find_nearby_articles(
+        latitude=latitude, longitude=longitude, radius=radius, max_results=50
     )
     # Show the attractions on a map
     show_map(

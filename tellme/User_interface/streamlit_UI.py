@@ -30,12 +30,12 @@ with st.sidebar:
         placeholder="""Enter longitude value of your location""",
     )
 
-    box_size = st.number_input(
-        label='Box size',
+    radius = st.number_input(
+        label='Radius',
         min_value=1,
-        max_value=100,
-        value=1,
-        placeholder="""Enter size of the box in which you want to search for attractions""",
+        max_value=10000,
+        value=1000,
+        placeholder="""Enter size of the radius in which you want to search for attractions""",
     )
 
     st.header('Model Settings')
@@ -63,11 +63,11 @@ with st.sidebar:
             Chat = ChatOllama
 
 
-if (latitude is not None) and (longitude is not None) and (box_size is not None):
+if (latitude is not None) and (longitude is not None) and (radius is not None):
     fetch_and_create_attraction_map(
         latitude=latitude,
         longitude=longitude,
-        box_size=box_size,
+        radius=radius,
         chat_provider=chat_provider,
         Chat=Chat,
         model_name=model_name,
