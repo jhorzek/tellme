@@ -97,7 +97,8 @@ def create_podcast_transcript(
     )
     transcript = chat.extract_data(
         '\n\nPlease now create a podcast based on the following article:\n\n'
-        + wiki_article,
+        + wiki_article
+        + '\n\nMake sure to mention that it is an article from wikipedia and that the podcast is ai generated.',
         data_model=Transcript,
     )
     return transcript['utterances']
