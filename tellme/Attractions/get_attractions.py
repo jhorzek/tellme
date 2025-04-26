@@ -1,6 +1,8 @@
-"""Extract all attractions within a bounding box."""
+"""Extract all attractions around a location."""
 
-import overpy
+# Adapted from https://www.mediawiki.org/wiki/API:Geosearch/Sample_code_1
+
+import requests
 import streamlit as st
 
 
@@ -34,83 +36,53 @@ class Attraction:
 
 
 @st.cache_data
-def get_nearby_attractions(
-    west_longitude: float,
-    south_latitude: float,
-    east_longitude: float,
-    north_latitude: float,
+def find_nearby_articles(
+    latitude: float, longitude: float, max_results: int, radius: int, local: str = 'en'
 ) -> list[Attraction]:
-    """Retrieve all attractions within a given bounding box.
+    session = requests.Session()
 
-    All nodes with the tag ["tourism"="attraction"] and a wikipedia article
-    are returned.
+    url = f'https://{local}.wikipedia.org/w/api.php'
+    request_parameters = {
+        'action': 'query',
+        'format': 'json',
+        'prop': 'coordinates|description|info',
+        'generator': 'geosearch',
+        'formatversion': 2,
+        'ggscoord': f'{latitude}|{longitude}',
+        'ggsradius': radius,
+        'ggslimit': max_results,
+    }
 
-    Args:
-        west_longitude (float): The western longitude corrdinate of the bounding box
-        south_latitude (float): The southern latitude corrdinate of the bounding box
-        east_longitude (float): The eastern longitude corrdinate of the bounding box
-        north_latitude (float): The northern latitude corrdinate of the bounding box
+    request_result = session.get(url=url, params=request_parameters).json()
 
-    Returns:
-        A list with attractions. See Attraction for more details.
-
-    Example:
-        from tellme.B_get_location.location import get_bounding_box
-        from tellme.C_get_attractions_nearby.get_attractions import get_nearby_attractions
-        # 1km bounding box around Alexanderplatz
-        bounding_box = get_bounding_box(52.521992, 13.413244, 1.0)
-        get_nearby_attractions(west_longitude = bounding_box.bounds[0],
-                               south_latitude = bounding_box.bounds[1],
-                               east_longitude = bounding_box.bounds[2],
-                               north_latitude = bounding_box.bounds[3])
-    """
-    # Initialize Overpass API
-    api = overpy.Overpass()
-
-    # Define an Overpass query for tourist attractions in a bounding box
-    # The bounding boxes are defined as:
-    # https://dev.overpass-api.de/overpass-doc/en/full_data/bbox.html
-    # (latitude of the southern edge,
-    #  longitude of the western edge,
-    #  latitude of the norther edge,
-    #  longitude of the eastern edge).
-    query = f"""
-    [out:json];
-    node
-    ["wikipedia"]
-    ({south_latitude}, {west_longitude}, {north_latitude}, {east_longitude});  // Bounding box
-    out;
-    """
-
-    # Get the attractions
-    attractions = nodes_to_attractions(api.query(query).nodes)
-
+    pages = request_result['query']['pages']
+    attractions = pages_to_attractions(pages=pages)
     return attractions
 
 
-def nodes_to_attractions(overpy_nodes: overpy.Result) -> list[Attraction]:
-    """Extract the attraction information from overpy.Result nodes.
+def pages_to_attractions(pages: list) -> list[Attraction]:
+    """Extract the attraction information from wikipedia pages.
 
     Args:
-        overpy_nodes (overpy.Result): Nodes with attraction data retrieved via overpy.
+        pages (list): Pages from wiki request
 
     Returns:
         list[Attraction]: A list of attractions. See Attraction for more details
     """
     attractions: list[Attraction] = []
 
-    for node in overpy_nodes:
-        name = node.tags.get('name', 'noname')
-        location = {'latitude': float(node.lat), 'longitude': float(node.lon)}
-        wikipedia_name = node.tags.get('wikipedia', 'noarticle')
-        if (name == 'noname') | (wikipedia_name == 'noarticle'):
-            continue
+    for page in pages:
+        name = page['title']
+        location = {
+            'latitude': float(page['coordinates'][0]['lat']),
+            'longitude': float(page['coordinates'][0]['lon']),
+        }
         attractions.append(
             Attraction(
                 name=name,
                 location=location,
-                wikipedia_link=f'https://wikipedia.org/wiki/{wikipedia_name}',
-                wikidata_id=node.tags.get('wikidata'),
+                wikipedia_link=f'https://wikipedia.org/wiki/{page["pageid"]}',
+                wikidata_id=page['pageid'],
             )
         )
     return attractions
