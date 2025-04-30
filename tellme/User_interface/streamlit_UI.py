@@ -3,8 +3,17 @@
 import streamlit as st
 from chatlas import ChatGoogle, ChatOpenAI
 
+from tellme.AI_Podcast.podcast_setups import SofiaMark
+from tellme.Settings.AI_settings import (
+    AISettings,
+    PodcastInstructions,
+    SummaryInstructions,
+)
 from tellme.User_interface.attraction_map import fetch_and_create_attraction_map
-from tellme.User_interface.user_location import get_user_location
+from tellme.User_interface.user_location import (
+    address_to_coordinates,
+    get_user_location,
+)
 
 # Make sure that the following elements are kept when the app is rerun:
 if 'podcasts' not in st.session_state:
@@ -12,61 +21,87 @@ if 'podcasts' not in st.session_state:
 
 if 'summary' not in st.session_state:
     st.session_state.summary = {}
+if 'use_gps_location' not in st.session_state:
+    st.session_state.use_gps_location = True
 
-current_location = get_user_location()
+if st.session_state.use_gps_location:
+    location = get_user_location(component_key='Initial_Location')
+    print('Initial location')
+    print(location)
+    st.session_state.location = location
 
 with st.sidebar:
-    st.header('Wikipedia settings:')
-    local = st.text_input('Local of the wikipedia page', value='de')
-
     st.header('Location:')
-    latitude = st.number_input(
-        label='Latitude',
-        min_value=-90.00000,
-        max_value=90.00000,
-        value=current_location['latitude'],
-        placeholder="""Enter latitude value of your location""",
-    )
+    address = st.text_input(label='Address', value=None)
+    if st.button('Search address'):
+        location = address_to_coordinates(address=address)
+        if location is None:
+            st.error('Could not find the address you provided.')
+        else:
+            st.session_state.use_gps_location = False
+            st.session_state.location = location
 
-    longitude = st.number_input(
-        label='Longitude',
-        min_value=-180.00000,
-        max_value=180.00000,
-        value=current_location['longitude'],
-        placeholder="""Enter longitude value of your location""",
-    )
+    if st.button('Use gps location'):
+        st.session_state.use_gps_location = True
 
+    latitude = st.session_state.location.get('latitude')
+    longitude = st.session_state.location.get('longitude')
     radius = st.number_input(
-        label='Radius',
+        label='Enter the radius (in meters) in which you want to search for attractions:',
         min_value=1,
         max_value=10000,
         value=1000,
-        placeholder="""Enter size of the radius in which you want to search for attractions""",
     )
 
+    st.header('Wikipedia settings:')
+    local = st.text_input(
+        (
+            'In which language should tellme search for wikipedia articles (e.g., en = English, de = German)?'
+            + ' This has no influence on the language of the summaries or podcasts, but can change how many articles are found.'
+            + ' Language setting for the podcast can be found in the model settings when selecting OpenAI.'
+        ),
+        value='de',
+    )
     st.header('Model Settings')
 
     chat_provider = st.selectbox(
-        'Choose a chat provider', ['Gemini', 'OpenAI'], index=0
+        'Choose a chat provider', ['OpenAI', 'Gemini'], index=0
     )
 
+    ai_settings = AISettings()
+
     if chat_provider == 'Gemini':
-        model_name = st.text_input(
+        ai_settings.model_name = st.text_input(
             'Name of the AI model to use', value='gemini-2.0-flash'
         )
-        speech_model = 'edge-tts'
+        ai_settings.speech_model = 'edge-tts'
+        language = 'English'
     elif chat_provider == 'OpenAI':
-        model_name = st.text_input('Name of the AI model to use', value='gpt-4.1')
+        ai_settings.model_name = st.text_input(
+            'Name of the AI model to use', value='gpt-4.1'
+        )
         st.text('OpenAI will also be used to generate the voices.')
-        speech_model = 'gpt-4o-mini-tts'
-
+        ai_settings.speech_model = 'gpt-4o-mini-tts'
+        language = st.text_input(
+            'Which language should the podcast be in?', value='English'
+        )
+    ai_settings.summary_instructions = SummaryInstructions(language=language)
     api_key = st.text_input(f'Your API Key for {chat_provider}', type='password')
 
     match chat_provider:
         case 'Gemini':
-            Chat = ChatGoogle
+            ai_settings.Chat = ChatGoogle
+            ai_settings.podcast_instructions = PodcastInstructions(
+                SofiaMark(
+                    voices={'Mark': 'en-US-RogerNeural', 'Sofia': 'en-GB-SoniaNeural'},
+                    language=language,
+                )
+            )
         case 'OpenAI':
-            Chat = ChatOpenAI
+            ai_settings.Chat = ChatOpenAI
+            ai_settings.podcast_instructions = PodcastInstructions(
+                SofiaMark(voices={'Mark': 'ash', 'Sofia': 'alloy'}, language=language)
+            )
 
 
 if (latitude is not None) and (longitude is not None) and (radius is not None):
@@ -76,8 +111,6 @@ if (latitude is not None) and (longitude is not None) and (radius is not None):
         longitude=longitude,
         radius=radius,
         chat_provider=chat_provider,
-        Chat=Chat,
-        model_name=model_name,
+        ai_settings=ai_settings,
         api_key=api_key,
-        speech_model=speech_model,
     )

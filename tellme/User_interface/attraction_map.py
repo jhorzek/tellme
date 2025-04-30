@@ -1,3 +1,5 @@
+"""Generates a map of nearby attractions."""
+
 import asyncio
 
 import folium
@@ -10,40 +12,68 @@ from tellme.Attractions.get_attractions import (
     Attraction,
     find_nearby_articles,
 )
+from tellme.Settings.AI_settings import AISettings
 from tellme.User_interface.location_to_podcast import location_to_podcast
 
 
-def add_podcast(attraction_name, path):
+def add_podcast(attraction_name: str, path: str):
+    """Add a podcast to the list of podcasts saved by tellme.
+
+    Args:
+        attraction_name (str): The name of the attraction
+        path (str): The path to the podcast mp3 file
+    """
     st.session_state.podcasts[attraction_name] = path
 
 
-def add_summary(attraction_name, summary_text):
+def add_summary(attraction_name: str, summary_text: str):
+    """Save a summary in the list of summaries.
+
+    Args:
+        attraction_name (str): Name of the attraction
+        summary_text (str): Summary text
+    """
     st.session_state.summary[attraction_name] = summary_text
 
 
-def get_podcast(attraction_name):
+def get_podcast(attraction_name: str) -> str | None:
+    """Retrieve the location of the mp3 file of a podcast.
+
+    Args:
+        attraction_name (str): Name of the attraction
+
+    Returns:
+        str|None: File path to the mp3 or None if no podcast exists
+    """
     return st.session_state.podcasts.get(attraction_name)
 
 
-def get_summary(attraction_name):
+def get_summary(attraction_name: str) -> str | None:
+    """Retrieve the summary of the article.
+
+    Args:
+        attraction_name (str): Name of the attraction
+
+    Returns:
+        str|None: Summary of the article or None if no summary exists
+    """
     return st.session_state.summary.get(attraction_name)
 
 
-def show_attraction_details(
+def wiki_summary(
     attraction: Attraction,
-    local,
-    chat_provider: str,
-    Chat,
-    model_name,
-    api_key,
-    speech_model,
+    local: str,
+    ai_settings: AISettings,
+    api_key: str,
 ) -> None:
-    # Create a list with each of the locations and allow users to create podcasts
-    st.subheader(attraction.name)
-    if (api_key is None) or (api_key == ''):
-        st.error('Please provide an API key')
-        return
+    """Generate and show the wiki-summary.
 
+    Args:
+        attraction (Attraction): The attraction for which the article should be summarized
+        local (str): The language of the wikipedia article
+        ai_settings (AISettings): Settings for the LLMs
+        api_key (str): API key for the llm
+    """
     if get_summary(attraction_name=attraction.name):
         st.text(get_summary(attraction_name=attraction.name))
     else:
@@ -54,15 +84,38 @@ def show_attraction_details(
             st.error('Could not retrieve article from wikipedia')
             return
         summary_text = create_article_summary(
-            article,
-            Chat=Chat,
-            model=model_name,
+            wiki_article=article,
+            system_prompt=ai_settings.summary_instructions.base_prompt,
+            Chat=ai_settings.Chat,
+            model=ai_settings.model_name,
             api_key=api_key,
+        )
+        summary_text = (
+            str(summary_text)
+            + f'\n\nThis summary was created based on the wikipedia article on {attraction.name}'
         )
 
         add_summary(attraction_name=attraction.name, summary_text=summary_text)
         st.text(get_summary(attraction_name=attraction.name))
 
+
+def podcast(
+    attraction: Attraction,
+    local: str,
+    ai_settings: AISettings,
+    api_key: str,
+) -> None:
+    """Generate and show the podcast.
+
+    Args:
+        attraction (Attraction): The attraction for which the article should be summarized
+        local (str): The language of the wikipedia article
+        Chat (Type[chatlas.Chat]): A chat object to call the llm provider
+        hosts (PodcastHosts): Podcast host setup
+        model_name (str): Name of the llm
+        api_key (str): API key for the llm
+        speech_model (str): Name of the speech model
+    """
     if get_podcast(attraction.name):
         st.audio(
             get_podcast(attraction.name),
@@ -91,10 +144,11 @@ def show_attraction_details(
                         location_to_podcast(
                             article=article,
                             attraction_name=attraction.name,
-                            Chat=Chat,
-                            model_name=model_name,
+                            Chat=ai_settings.Chat,
+                            hosts=ai_settings.podcast_instructions.hosts,
+                            model_name=ai_settings.model_name,
                             api_key=api_key,
-                            speech_model=speech_model,
+                            speech_model=ai_settings.speech_model,
                         )
                     )
                 add_podcast(attraction.name, pod_path)
@@ -106,17 +160,61 @@ def show_attraction_details(
                 )
 
 
+def show_attraction_details(
+    attraction: Attraction,
+    local: str,
+    ai_settings: AISettings,
+    api_key: str,
+) -> None:
+    """Show the summary and the podcast feature for a given attraction.
+
+    Args:
+        attraction (Attraction): The attraction for which the article should be summarized
+        local (str): The language of the wikipedia article
+        ai_settings (AISettings): Settings for the LLMs
+        api_key (str): API key for the llm
+    """
+    # Create a list with each of the locations and allow users to create podcasts
+    st.subheader(attraction.name)
+    if (api_key is None) or (api_key == ''):
+        st.error('Please provide an API key')
+        return
+
+    wiki_summary(
+        attraction=attraction,
+        local=local,
+        ai_settings=ai_settings,
+        api_key=api_key,
+    )
+
+    podcast(
+        attraction=attraction,
+        local=local,
+        ai_settings=ai_settings,
+        api_key=api_key,
+    )
+
+
 def show_map(
-    latitude,
-    longitude,
+    latitude: float,
+    longitude: float,
     attractions: list[Attraction],
-    local,
-    chat_provider,
-    Chat,
-    model_name,
-    api_key,
-    speech_model,
-):
+    local: str,
+    chat_provider: str,
+    ai_settings: AISettings,
+    api_key: str,
+) -> None:
+    """Show the map with the wikipedia articles.
+
+    Args:
+        latitude (float): latitude
+        longitude (float): longitude
+        attractions (list[Attraction]): list with attractions
+        local (str): The language of the wikipedia article
+        chat_provider (str): Name of the chat provider
+        ai_settings (AISettings): Settings for the LLMs
+        api_key (str): API key for the llm
+    """
     map = folium.Map(location=[latitude, longitude], zoom_start=16)
     for attr in attractions:
         folium.Marker(
@@ -139,25 +237,31 @@ def show_map(
                 show_attraction_details(
                     attraction=attraction,
                     local=local,
-                    chat_provider=chat_provider,
-                    Chat=Chat,
-                    model_name=model_name,
+                    ai_settings=ai_settings,
                     api_key=api_key,
-                    speech_model=speech_model,
                 )
 
 
 def fetch_and_create_attraction_map(
-    local,
-    latitude,
-    longitude,
-    radius,
-    chat_provider,
-    Chat,
-    model_name,
-    api_key,
-    speech_model,
-):
+    local: str,
+    latitude: float,
+    longitude: float,
+    radius: float,
+    chat_provider: str,
+    ai_settings: AISettings,
+    api_key: str,
+) -> None:
+    """Fetch local attractions and fill map.
+
+    Args:
+        local (str): The language of the wikipedia article
+        latitude (float): latitude
+        longitude (float): longitude
+        radius (float): radius around latitude / longitude in which attractions should be searched
+        chat_provider (str): Name of the chat provider
+        ai_settings (AISettings): Setting for the LLMs
+        api_key (str): API key for the llm
+    """
     print(f'Calling find_nearby_articles with {latitude} {longitude} {radius}')
     attractions = find_nearby_articles(
         local=local,
@@ -173,8 +277,6 @@ def fetch_and_create_attraction_map(
         attractions,
         local=local,
         chat_provider=chat_provider,
-        Chat=Chat,
-        model_name=model_name,
+        ai_settings=ai_settings,
         api_key=api_key,
-        speech_model=speech_model,
     )

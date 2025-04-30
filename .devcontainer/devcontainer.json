@@ -19,7 +19,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"charliermarsh.ruff"
+				"charliermarsh.ruff",
+				"njpwerner.autodocstring"
 			],
 			"settings": {
 				"[python]": {
