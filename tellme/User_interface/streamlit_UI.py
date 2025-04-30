@@ -10,7 +10,10 @@ from tellme.Settings.AI_settings import (
     SummaryInstructions,
 )
 from tellme.User_interface.attraction_map import fetch_and_create_attraction_map
-from tellme.User_interface.user_location import get_user_location
+from tellme.User_interface.user_location import (
+    address_to_coordinates,
+    get_user_location,
+)
 
 # Make sure that the following elements are kept when the app is rerun:
 if 'podcasts' not in st.session_state:
@@ -18,42 +21,51 @@ if 'podcasts' not in st.session_state:
 
 if 'summary' not in st.session_state:
     st.session_state.summary = {}
+if 'use_gps_location' not in st.session_state:
+    st.session_state.use_gps_location = True
 
-current_location = get_user_location()
+if st.session_state.use_gps_location:
+    location = get_user_location(component_key='Initial_Location')
+    print('Initial location')
+    print(location)
+    st.session_state.location = location
 
 with st.sidebar:
-    st.header('Wikipedia settings:')
-    local = st.text_input('Local of the wikipedia page', value='de')
-
     st.header('Location:')
-    latitude = st.number_input(
-        label='Latitude',
-        min_value=-90.00000,
-        max_value=90.00000,
-        value=current_location['latitude'],
-        placeholder="""Enter latitude value of your location""",
-    )
+    address = st.text_input(label='Address', value=None)
+    if st.button('Search address'):
+        location = address_to_coordinates(address=address)
+        if location is None:
+            st.error('Could not find the address you provided.')
+        else:
+            st.session_state.use_gps_location = False
+            st.session_state.location = location
 
-    longitude = st.number_input(
-        label='Longitude',
-        min_value=-180.00000,
-        max_value=180.00000,
-        value=current_location['longitude'],
-        placeholder="""Enter longitude value of your location""",
-    )
+    if st.button('Use gps location'):
+        st.session_state.use_gps_location = True
 
+    latitude = st.session_state.location.get('latitude')
+    longitude = st.session_state.location.get('longitude')
     radius = st.number_input(
-        label='Radius',
+        label='Enter the radius (in meters) in which you want to search for attractions:',
         min_value=1,
         max_value=10000,
         value=1000,
-        placeholder="""Enter size of the radius in which you want to search for attractions""",
     )
 
+    st.header('Wikipedia settings:')
+    local = st.text_input(
+        (
+            'In which language should tellme search for wikipedia articles (e.g., en = English, de = German)?'
+            + ' This has no influence on the language of the summaries or podcasts, but can change how many articles are found.'
+            + ' Language setting for the podcast can be found in the model settings when selecting OpenAI.'
+        ),
+        value='de',
+    )
     st.header('Model Settings')
 
     chat_provider = st.selectbox(
-        'Choose a chat provider', ['Gemini', 'OpenAI'], index=0
+        'Choose a chat provider', ['OpenAI', 'Gemini'], index=0
     )
 
     ai_settings = AISettings()
@@ -79,9 +91,11 @@ with st.sidebar:
     match chat_provider:
         case 'Gemini':
             ai_settings.Chat = ChatGoogle
-            ai_settings.podcast_instructions = SofiaMark(
-                voices={'Mark': 'en-US-RogerNeural', 'Sofia': 'en-GB-SoniaNeural'},
-                language=language,
+            ai_settings.podcast_instructions = PodcastInstructions(
+                SofiaMark(
+                    voices={'Mark': 'en-US-RogerNeural', 'Sofia': 'en-GB-SoniaNeural'},
+                    language=language,
+                )
             )
         case 'OpenAI':
             ai_settings.Chat = ChatOpenAI

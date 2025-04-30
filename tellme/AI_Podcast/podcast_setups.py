@@ -75,6 +75,7 @@ Wrap-Up (30 seconds)
 - Avoid long monologues—keep turns snappy and conversational.
 - Use plain, accessible language.
 - Do not exceed 450 words.
+- Do not ask for feedback.
 """
 
     def __init__(self, voices: dict[str, str], language: str):

@@ -90,6 +90,10 @@ def wiki_summary(
             model=ai_settings.model_name,
             api_key=api_key,
         )
+        summary_text = (
+            str(summary_text)
+            + f'\n\nThis summary was created based on the wikipedia article on {attraction.name}'
+        )
 
         add_summary(attraction_name=attraction.name, summary_text=summary_text)
         st.text(get_summary(attraction_name=attraction.name))
