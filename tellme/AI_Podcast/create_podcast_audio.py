@@ -98,7 +98,6 @@ async def create_podcast_audio_openai(
         os.path.join(output_folder, 'pod_' + uuid.uuid4().hex + '.mp3')
         for utter in transcript
     ]
-    print('Generating audio')
     await create_audio_segments_openai(
         api_key=api_key,
         file_names=audio_files,
@@ -106,7 +105,6 @@ async def create_podcast_audio_openai(
         speech_model=speech_model,
         voices=voices,
     )
-    print('Done generating audio')
     # After creating the individual segments, we want to combine them.
     ffmpeg_input = []
     for file in audio_files:

@@ -69,7 +69,6 @@ def find_nearby_articles(
     request_result = session.get(url=url, params=request_parameters).json()
 
     pages = request_result['query']['geosearch']
-    print(f'Found {len(pages)} attractions!')
     attractions = pages_to_attractions(pages=pages)
     return attractions
 
