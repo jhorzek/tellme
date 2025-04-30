@@ -79,8 +79,7 @@ def wiki_summary(
     else:
         try:
             article = get_wiki_article(article_id=attraction.wikidata_id, local=local)
-        except Exception as error:
-            print('Could not retrieve article from wikipedia:', error)
+        except Exception:
             st.error('Could not retrieve article from wikipedia')
             return
         summary_text = create_article_summary(
@@ -135,8 +134,7 @@ def podcast(
                     article = get_wiki_article(
                         article_id=attraction.wikidata_id, local=local
                     )
-                except Exception as error:
-                    print('Could not retrieve article from wikipedia:', error)
+                except Exception:
                     st.error('Could not retrieve article from wikipedia')
                     return
                 with st.spinner('Creating the podcast for you...', show_time=True):
@@ -262,7 +260,6 @@ def fetch_and_create_attraction_map(
         ai_settings (AISettings): Setting for the LLMs
         api_key (str): API key for the llm
     """
-    print(f'Calling find_nearby_articles with {latitude} {longitude} {radius}')
     attractions = find_nearby_articles(
         local=local,
         latitude=latitude,

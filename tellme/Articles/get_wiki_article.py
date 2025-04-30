@@ -27,6 +27,4 @@ def get_wiki_article(article_id: str, local: str) -> str:
 
     request_result = session.get(url=url, params=request_parameters).json()
 
-    print(request_result)
-
     return request_result['parse']['wikitext']

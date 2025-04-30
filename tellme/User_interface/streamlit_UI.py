@@ -26,8 +26,6 @@ if 'use_gps_location' not in st.session_state:
 
 if st.session_state.use_gps_location:
     location = get_user_location(component_key='Initial_Location')
-    print('Initial location')
-    print(location)
     st.session_state.location = location
 
 with st.sidebar:
