@@ -84,9 +84,9 @@ def create_podcast_transcript(
 
     Example:
         from tellme.F_create_podcast.create_podcast_transcript import create_podcast_transcript
-        from tellme.F_create_podcast.podcast_setup import Sofia_Mark
+        from tellme.F_create_podcast.podcast_setup import Sofia_Mark_tts
         from chatlas import ChatGoogle
-        create_podcast_transcript(system_prompt = Sofia_Mark,
+        create_podcast_transcript(system_prompt = Sofia_Mark_tts.instructions,
                                   wiki_article = "this is a placeholder for the article text",
                                   Chat = ChatGoogle,
                                   api_key = "your_api_key")

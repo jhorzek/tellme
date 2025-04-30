@@ -3,6 +3,12 @@
 import streamlit as st
 from chatlas import ChatGoogle, ChatOpenAI
 
+from tellme.AI_Podcast.podcast_setups import SofiaMark
+from tellme.Settings.AI_settings import (
+    AISettings,
+    PodcastInstructions,
+    SummaryInstructions,
+)
 from tellme.User_interface.attraction_map import fetch_and_create_attraction_map
 from tellme.User_interface.user_location import get_user_location
 
@@ -50,23 +56,38 @@ with st.sidebar:
         'Choose a chat provider', ['Gemini', 'OpenAI'], index=0
     )
 
+    ai_settings = AISettings()
+
     if chat_provider == 'Gemini':
-        model_name = st.text_input(
+        ai_settings.model_name = st.text_input(
             'Name of the AI model to use', value='gemini-2.0-flash'
         )
-        speech_model = 'edge-tts'
+        ai_settings.speech_model = 'edge-tts'
+        language = 'English'
     elif chat_provider == 'OpenAI':
-        model_name = st.text_input('Name of the AI model to use', value='gpt-4.1')
+        ai_settings.model_name = st.text_input(
+            'Name of the AI model to use', value='gpt-4.1'
+        )
         st.text('OpenAI will also be used to generate the voices.')
-        speech_model = 'gpt-4o-mini-tts'
-
+        ai_settings.speech_model = 'gpt-4o-mini-tts'
+        language = st.text_input(
+            'Which language should the podcast be in?', value='English'
+        )
+    ai_settings.summary_instructions = SummaryInstructions(language=language)
     api_key = st.text_input(f'Your API Key for {chat_provider}', type='password')
 
     match chat_provider:
         case 'Gemini':
-            Chat = ChatGoogle
+            ai_settings.Chat = ChatGoogle
+            ai_settings.podcast_instructions = SofiaMark(
+                voices={'Mark': 'en-US-RogerNeural', 'Sofia': 'en-GB-SoniaNeural'},
+                language=language,
+            )
         case 'OpenAI':
-            Chat = ChatOpenAI
+            ai_settings.Chat = ChatOpenAI
+            ai_settings.podcast_instructions = PodcastInstructions(
+                SofiaMark(voices={'Mark': 'ash', 'Sofia': 'alloy'}, language=language)
+            )
 
 
 if (latitude is not None) and (longitude is not None) and (radius is not None):
@@ -76,8 +97,6 @@ if (latitude is not None) and (longitude is not None) and (radius is not None):
         longitude=longitude,
         radius=radius,
         chat_provider=chat_provider,
-        Chat=Chat,
-        model_name=model_name,
+        ai_settings=ai_settings,
         api_key=api_key,
-        speech_model=speech_model,
     )

@@ -1,6 +1,35 @@
 """Defines some setups for the podcast to be used as base prompts for the AI."""
 
-Sofia_Mark = """
+
+class PodcastHosts:
+    """Podcast host setup."""
+
+    names: list[str]
+    voices: list[str]
+    instructions = str
+
+    def __init__(self, names: list[str], voices: dict[str, str], instructions=str):
+        """Create a new podcast hosts setup.
+
+        Args:
+            names (list[str]): The names of the hosts
+            voices (dict[str, str]): The names of the voices to use
+            instructions (str): The instructions to send to the llm
+        """
+        if len(names) != len(voices):
+            raise ValueError('names and voices must have the same length.')
+        for name in names:
+            if voices.get(name) is None:
+                raise ValueError('Could not find a voice for ' + name + '.')
+
+        self.names = names
+        self.voices = voices
+        self.instructions = instructions
+
+
+class SofiaMark(PodcastHosts):
+    names = ['Sofia', 'Mark']
+    instructions = instructions = """
 Create a short, engaging podcast transcript between two hosts based on the article below. 
 The podcast should feel conversational and friendly, with natural back-and-forth dialogue. 
 Keep the total transcript to around 3 minutes in length (approximately 400–450 words).
@@ -47,3 +76,26 @@ Wrap-Up (30 seconds)
 - Use plain, accessible language.
 - Do not exceed 450 words.
 """
+
+    def __init__(self, voices: dict[str, str], language: str):
+        """Initialize podcast with Sofia and Mark.
+
+        Args:
+            voices (dict[str, str]): Voices used for Sofia and Mark
+            language (str): The language of the podcast
+
+        Raises:
+            ValueError: Raises error in case one of the voices is missing
+            ValueError: Raises error in case the keys of the dict do not match the names
+        """
+        if len(self.names) != len(voices):
+            raise ValueError('names and voices must have the same length.')
+        for name in self.names:
+            if voices.get(name) is None:
+                raise ValueError('Could not find a voice for ' + name + '.')
+        self.voices = voices
+
+        self.instructions = (
+            self.instructions
+            + f'\n\nPlease make sure that the podcast is in the following language: {language}'
+        )

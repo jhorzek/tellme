@@ -42,6 +42,18 @@ def find_nearby_articles(
     radius: int,
     local: str = 'en',
 ) -> list[Attraction]:
+    """Retrieve articles from wikipedia surrounding a location.
+
+    Args:
+        latitude (float): location latitude
+        longitude (float): location longitude
+        max_results (int): maximal number of results to return
+        radius (int): radius surrouding the current location
+        local (str, optional): The language of wikipedia to search in. Defaults to 'en'.
+
+    Returns:
+        list[Attraction]: A list of attractions. See Attraction for more details
+    """
     session = requests.Session()
 
     url = f'https://{local}.wikipedia.org/w/api.php'

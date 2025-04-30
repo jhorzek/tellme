@@ -5,6 +5,11 @@ from streamlit_js_eval import get_geolocation
 
 
 def get_user_location() -> dict[str, float]:
+    """Calls javascript library to get the users location.
+
+    Returns:
+        dict[str, float]: coordinates (latitude and longitude)
+    """
     user_location = get_geolocation()
     if user_location is None:
         st.error(

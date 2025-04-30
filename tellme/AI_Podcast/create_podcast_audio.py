@@ -21,16 +21,30 @@ async def create_audio_segment_edge(utterance: str, voice: str, file_name: str) 
 
 
 async def create_audio_segments_openai(
-    api_key, file_names, transcript, speech_model, voices
+    api_key: str,
+    file_names: list[str],
+    transcript: list[dict[str, str]],
+    speech_model: str,
+    voices: dict[str, str],
 ) -> None:
+    """Create the audio for the segments of the podcast with OpenAI.
+
+    Args:
+        api_key (str): API key for OpenAI
+        file_names (list[str]): Names of the files where the audio should be saved
+        transcript (list[dict[str, str]]): The transcript of the podcast
+        speech_model (str): Name of the speech model from OpenAI to use
+        voices (dict[str, str]): voices from OpenAI to use
+    """
     openai = OpenAI(api_key=api_key)
     for i, utter in enumerate(transcript):
-        with openai.audio.speech.with_streaming_response.create(
-            model=speech_model,
-            voice=voices[utter.get('speaker')],
-            input=utter.get('utterance'),
-        ) as response:
-            response.stream_to_file(file_names[i])
+        if (utter.get('speaker') is not None) and (utter.get('utterance') is not None):
+            with openai.audio.speech.with_streaming_response.create(
+                model=speech_model,
+                voice=voices[utter.get('speaker')],
+                input=utter.get('utterance'),
+            ) as response:
+                response.stream_to_file(file_names[i])
 
 
 async def create_podcast_audio_openai(
