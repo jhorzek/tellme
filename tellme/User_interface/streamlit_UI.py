@@ -84,7 +84,11 @@ with st.sidebar:
             'Which language should the podcast be in?', value='English'
         )
     ai_settings.summary_instructions = SummaryInstructions(language=language)
-    api_key = st.text_input(f'Your API Key for {chat_provider}', type='password')
+    api_key = st.text_input(
+        f'Your API Key for {chat_provider}',
+        type='password',
+        help='To use gemini, you need an API key. Google provides a free key that can be used for a small number of requests. Go to https://aistudio.google.com/apikey and create a new API key. Save this API key and supply it to the app to create a podcast.',
+    )
 
     match chat_provider:
         case 'Gemini':
