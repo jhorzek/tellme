@@ -74,6 +74,11 @@ with st.sidebar:
         )
         ai_settings.speech_model = 'edge-tts'
         language = 'English'
+        api_key = st.text_input(
+            f'Your API Key for {chat_provider}',
+            type='password',
+            help=f'To use {chat_provider}, you need an API key. Google provides a free key that can be used for a small number of requests. Go to https://aistudio.google.com/apikey and create a new API key. Save this API key and supply it to the app to create a podcast.',
+        )
     elif chat_provider == 'OpenAI':
         ai_settings.model_name = st.text_input(
             'Name of the AI model to use', value='gpt-4.1'
@@ -83,12 +88,12 @@ with st.sidebar:
         language = st.text_input(
             'Which language should the podcast be in?', value='English'
         )
+        api_key = st.text_input(
+            f'Your API Key for {chat_provider}',
+            type='password',
+            help=f'To use {chat_provider}, you need an API key. OpenAI requires to set up a payed API key. Go to https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key and create a new API key. Save this API key and supply it to the app to create a podcast.',
+        )
     ai_settings.summary_instructions = SummaryInstructions(language=language)
-    api_key = st.text_input(
-        f'Your API Key for {chat_provider}',
-        type='password',
-        help='To use gemini, you need an API key. Google provides a free key that can be used for a small number of requests. Go to https://aistudio.google.com/apikey and create a new API key. Save this API key and supply it to the app to create a podcast.',
-    )
 
     match chat_provider:
         case 'Gemini':
