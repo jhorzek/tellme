@@ -46,7 +46,7 @@ with st.sidebar:
     longitude = st.session_state.location.get('longitude')
     radius = st.number_input(
         label='Enter the radius (in meters) in which you want to search for attractions:',
-        min_value=1,
+        min_value=15,
         max_value=10000,
         value=1000,
     )
